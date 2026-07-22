@@ -56,7 +56,7 @@ def stim_1():
         "Intensity": -1.1,
     }
     yield {# add channel
-        "Action": 2,
+        "Action": 0,
         "ChannelNumber": 2,
     }
     yield {# adjust frequency
@@ -72,7 +72,7 @@ def stim_1():
         "Intensity": 0.9,
     }
     yield {  # add channel
-        "Action": 2,
+        "Action": 0,
         "ChannelNumber": 3,
     }
     yield {  # adjust frequency
@@ -88,7 +88,7 @@ def stim_1():
         "Intensity": -0.9,
     }
     yield {  # add channel
-        "Action": 2,
+        "Action": 0,
         "ChannelNumber": 4,
     }
     yield {  # adjust frequency
@@ -105,12 +105,12 @@ def start_stim():
         "Action": 4,
     }
 
-def send_messages(msgs, timeout= 2):
+def send_messages(msgs, timeout=pylsl.FOREVER):
     for msg in msgs:
         print(f'Sending message: {msg}')
         mxn_output.push_sample([json.dumps(msg)])
-        time.sleep(timeout)
-        response, ts = stim_stream.pull_sample(timeout=2.)
+        #time.sleep(timeout)
+        response, ts = stim_stream.pull_sample(timeout=timeout)
         if response is not None:
             print(f'Received response: {response}')
         else:
@@ -120,8 +120,8 @@ while True:
     msg, timestamp = trigger_stream.pull_sample()
     print(f"Received sample '{msg}' at {timestamp}")
     if msg == "stim 1":
-        send_messages(stim_1(),1)
-        send_messages(start_stim(),2)
+        send_messages(stim_1(),5)
+        send_messages(start_stim(),5)
     elif msg == "stim 2":
         print("Stim 2 not implemented yet")
     else:
