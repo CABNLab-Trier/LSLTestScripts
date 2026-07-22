@@ -3,7 +3,9 @@ from pylsl.lib import cf_string
 import time
 import json
 
-pylsl.set_config_filename("cfg/amyTI.cfg")
+pylsl.set_config_filename("cfg/lsl_api.cfg")
+
+look_for_device_channel = False
 
 streams = []
 while not streams:
@@ -23,13 +25,16 @@ mxn_info = pylsl.StreamInfo(
 )
 mxn_output = pylsl.StreamOutlet(mxn_info)
 
-streams = []
-while not streams:
-    print("Looking for device stream...")
-    streams = pylsl.resolve_byprop('name', 'HD-SC_Stimulation', timeout=2.)
-print(f"Found streams: {streams}")
+if look_for_device_channel:
+    streams = []
+    while not streams:
+        print("Looking for device stream...")
+        streams = pylsl.resolve_byprop('name', 'HD-SC_Stimulation', timeout=2.)
+    print(f"Found streams: {streams}")
 
-stim_stream = pylsl.StreamInlet(streams[0])
+    stim_stream = pylsl.StreamInlet(streams[0])
+else:
+    stim_stream = None
 
 def stim_1():
     yield {# general stimulation parameters
@@ -109,19 +114,22 @@ def send_messages(msgs, timeout=pylsl.FOREVER):
     for msg in msgs:
         print(f'Sending message: {msg}')
         mxn_output.push_sample([json.dumps(msg)])
-        #time.sleep(timeout)
-        response, ts = stim_stream.pull_sample(timeout=timeout)
-        if response is not None:
-            print(f'Received response: {response}')
+        if stim_stream is None:
+            time.sleep(timeout)
         else:
-            print(f'Received no response')
+            response, ts = stim_stream.pull_sample(timeout=timeout)
+            if response is not None:
+               print(f'Received response: {response}')
+            else:
+               print(f'Received no response')
 
 while True:
     msg, timestamp = trigger_stream.pull_sample()
+    msg = msg[0]
     print(f"Received sample '{msg}' at {timestamp}")
     if msg == "stim 1":
-        send_messages(stim_1(),5)
-        send_messages(start_stim(),5)
+        send_messages(stim_1(),2)
+        send_messages(start_stim(),2)
     elif msg == "stim 2":
         print("Stim 2 not implemented yet")
     else:
