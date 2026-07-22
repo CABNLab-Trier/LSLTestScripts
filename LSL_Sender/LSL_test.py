@@ -1,8 +1,8 @@
 import pylsl
 from pylsl.lib import cf_string
 import time
-import json
 
+# pylsl config setzen auf configdatai in dem Ordner
 pylsl.set_config_filename("cfg/amyTI.cfg")
 
 info = pylsl.StreamInfo(
@@ -14,11 +14,10 @@ info = pylsl.StreamInfo(
     source_id = "desktop_triggers"
 )
 channel = pylsl.StreamOutlet(info)
-create_channel_msg = {
-    "Action":0,
-    "ChannelNumber":1,
-}
+
 while True:
+    msg = input("enter message content: ")
    # channel.push_sample(["hello from the other side... i must have pinged a thousand times"])
-    channel.push_sample([json.dumps(create_channel_msg)])
+    channel.push_sample([msg])
+    print("sending message...")
     time.sleep(2)
